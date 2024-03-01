@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import {
 Button,
@@ -11,9 +11,12 @@ Spinner,
 Theme,
 YStack
 } from 'tamagui';
-import { AlertDialogBox } from '~/components/alert';
+import AlertDialogBox  from '~/components/alert';
 import FormInput from '~/components/form-input';
-import { predictionInputSchema } from '~/schema/prediction-input';
+import PredictionInput, { predictionInputSchema } from '~/schema/prediction-input';
+
+import "axios";
+import { Alert } from 'react-native';
 
 export default function TabTwoScreen() {
   const {
@@ -24,66 +27,84 @@ export default function TabTwoScreen() {
     mode: 'onBlur',
   });
 
-  const [status, setStatus] = useState<'off' | 'submitting' | 'submitted'>('off');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
 
-  useEffect(() => {
-    if (status === 'submitting') {
-      const timer = setTimeout(() => setStatus('off'), 2000);
-      return () => {
-        clearTimeout(timer);
-      };
+  const callAPI = async (data: PredictionInput) => {
+    console.log(data);
+    setIsSubmitting(true);
+    try {
+      const response = await fetch('http://172.17.17.186:8000/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      const responseData = await response.json();
+      Alert.alert(responseData.prediction);
+      setShowAlertDialog(true);
+      setIsSubmitting(false);
+    } catch (error) {
+      console.error(error);
+      setIsSubmitting(false);
     }
-  }, [status]);
+  };
+  
+
+  const handleAlertDialogClose = () => {
+    setShowAlertDialog(false);
+  };
 
   return (
     <Theme name="light">
       <YStack flex={1} alignItems="center" justifyContent="center" mt="$8">
         <H2>Predictions</H2>
 
-        <Form onSubmit={handleSubmit((d) => console.log(d))} w={'100%'}>
+        <Form onSubmit={handleSubmit(data => callAPI(data as PredictionInput))} w={'100%'}>
           <ScrollView space="$2" px="$2" py="$2" scrollIndicatorInsets={{ right: 1 }} >
-            <FormInput control={control} name={'age'} placeholder="Age" otherProps={{ keyboardType: 'numeric' }} />
+            <FormInput control={control} otherProps={{ keyboardType: 'numeric' }} name={'age'} placeholder="Age" />
             <FormInput
-              control={control}
-              name={'number_of_sexual_partners'}
+              control={control} otherProps={{ keyboardType: 'numeric' }}
+              name={'num_sexual_partners'}
               placeholder="Number of Sexual Partners"
             />
             <FormInput
-              control={control}
+              control={control} otherProps={{ keyboardType: 'numeric' }}
               name={'first_sexual_intercourse'}
               placeholder="First Sexual Intercourse"
               
             />
             <FormInput
-              control={control}
-              name={'number_of_pregnancies'}
+              control={control} otherProps={{ keyboardType: 'numeric' }}
+              name={'num_pregnancies'}
               placeholder="Number of Pregnancies"
             />
-            <FormInput control={control} name={'smokes_years'} placeholder="Smoking Years" />
+            <FormInput control={control} otherProps={{ keyboardType: 'numeric' }} name={'smoking_years'} placeholder="Smoking Years" />
             <FormInput
-              control={control}
+              control={control} otherProps={{ keyboardType: 'numeric' }}
               name={'hormonal_contraceptives_years'}
               placeholder="Hormonal Contraceptives Years"
             />
-            <FormInput control={control} name={'iud_years'} placeholder="IUD Years" />
-            <FormInput control={control} name={'num_stds'} placeholder="Number of STDs" />
+            <FormInput control={control} otherProps={{ keyboardType: 'numeric' }} name={'iud_years'} placeholder="IUD Years" />
+            <FormInput control={control} otherProps={{ keyboardType: 'numeric' }} name={'num_stds'} placeholder="Number of STDs" />
             <FormInput
-              control={control}
+              control={control} otherProps={{ keyboardType: 'numeric' }}
               name={'stds_condylomatosis'}
               placeholder="STDs Condylomatosis"
             />
             <FormInput
-              control={control}
+              control={control} otherProps={{ keyboardType: 'numeric' }}
               name={'stds_cervical_condylomatosis'}
               placeholder="STDs Cervical Condylomatosis"
             />
-            <FormInput control={control} name={'stds_hiv'} placeholder="STDs HIV" />
-            <FormInput control={control} name={'stds_hpv'} placeholder="STDs HPV" />
-            <FormInput control={control} name={'dx_cin'} placeholder="DX CIN" />
-            <FormInput control={control} name={'dx_hpv'} placeholder="DX HPV" />
+            <FormInput control={control} otherProps={{ keyboardType: 'numeric' }} name={'stds_hiv'} placeholder="STDs HIV" />
+            <FormInput control={control} otherProps={{ keyboardType: 'numeric' }} name={'stds_hpv'} placeholder="STDs HPV" />
+            <FormInput control={control} otherProps={{ keyboardType: 'numeric' }} name={'dx_cin'} placeholder="DX CIN" />
+            <FormInput control={control} otherProps={{ keyboardType: 'numeric' }} name={'dx_hpv'} placeholder="DX HPV" />
 
             <YStack space="$2" mb="$5">
-              <Form.Trigger asChild disabled={status !== 'off'}>
+              <Form.Trigger asChild disabled={isSubmitting}>
                 <Button
                   backgroundColor={'$blue10'}
                   w={'100%'}
@@ -92,18 +113,19 @@ export default function TabTwoScreen() {
                   fontSize={18}
                   color={'white'}
                   fontWeight={'600'}
-                  onPress={handleSubmit((d) => console.log(d))}
-                  icon={status === 'submitting' ? () => <Spinner /> : undefined}>
+                  icon={isSubmitting ? () => <Spinner /> : undefined}>
                   Submit
                 </Button>
               </Form.Trigger>
-
-              <AlertDialogBox />
             </YStack>
           </ScrollView>
         </Form>
         <Separator />
       </YStack>
+
+      {showAlertDialog && (
+        <AlertDialogBox onClose={handleAlertDialogClose}/>
+      )}
     </Theme>
   );
 }

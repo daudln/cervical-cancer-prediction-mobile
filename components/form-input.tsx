@@ -16,7 +16,9 @@ const FormInput = ({ control, name, placeholder, otherProps }: FormInputProps) =
       name={name}
       render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
         <>
-          <Input value={value} onChange={() => {onChange(parseInt(value))}} onChangeText={onChange} onBlur={onBlur} placeholder={placeholder} {...otherProps} />
+          <Input value={value}
+            onChange={(event) => {onChange(+event.nativeEvent.text);
+            }} onChangeText={onChange} onBlur={onBlur} placeholder={placeholder} {...otherProps} />
           {error && <Paragraph color="$red10">{error.message}</Paragraph>}
         </>
       )}

@@ -1,8 +1,13 @@
+import React from 'react';
 import { AlertDialog, Button, XStack, YStack } from 'tamagui';
 
-export function AlertDialogBox() {
+interface AlertDialogBoxProps {
+  onClose: () => void;
+}
+
+const AlertDialogBox: React.FC<AlertDialogBoxProps> = ({ onClose }) => {
   return (
-    <AlertDialog>
+    <AlertDialog native>
       <AlertDialog.Trigger asChild>
         <Button>Show Alert</Button>
       </AlertDialog.Trigger>
@@ -14,7 +19,6 @@ export function AlertDialogBox() {
           enterStyle={{ opacity: 0 }}
           exitStyle={{ opacity: 0 }}
         />
-
         <AlertDialog.Content
           bordered
           elevate
@@ -32,19 +36,19 @@ export function AlertDialogBox() {
           x={0}
           scale={1}
           opacity={1}
-          y={0}>
+          y={0}
+        >
           <YStack space>
             <AlertDialog.Title>Accept</AlertDialog.Title>
-
             <AlertDialog.Description>
               By pressing yes, you accept our terms and conditions.
             </AlertDialog.Description>
             <XStack space="$3" justifyContent="flex-end">
               <AlertDialog.Cancel asChild>
-                <Button backgroundColor={'$red10'}>Cancel</Button>
+                <Button>Cancel</Button>
               </AlertDialog.Cancel>
               <AlertDialog.Action asChild>
-                <Button theme="active"  backgroundColor={'$green10'} fontWeight={'600'}>Accept</Button>
+                <Button theme="active" onPress={onClose}>Accept</Button>
               </AlertDialog.Action>
             </XStack>
           </YStack>
@@ -52,4 +56,6 @@ export function AlertDialogBox() {
       </AlertDialog.Portal>
     </AlertDialog>
   );
-}
+};
+
+export default AlertDialogBox;
